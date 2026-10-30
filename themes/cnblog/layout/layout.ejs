@@ -1,0 +1,23 @@
+<%# 静态资源版本号：按天变化，避免浏览器缓存旧的 404 或旧样式 %>
+<% var assetV = new Date().toISOString().slice(0, 10).replace(/-/g, ''); %>
+<!DOCTYPE html>
+<html lang="<%- config.language || 'zh-CN' %>">
+<head>
+  <%- partial('_partial/head', { assetV: assetV }) %>
+</head>
+<body class="skin-bluesky">
+  <%- partial('_partial/header') %>
+
+  <div class="container">
+    <main class="main-content">
+      <%- body %>
+    </main>
+    <%- partial('_partial/sidebar') %>
+  </div>
+
+  <div class="sidebar-mask" id="sidebarMask"></div>
+
+  <%- partial('_partial/footer') %>
+  <script src="<%- url_for('/js/main.js') %>?v=<%- assetV %>"></script>
+</body>
+</html>

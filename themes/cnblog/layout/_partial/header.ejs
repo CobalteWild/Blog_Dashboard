@@ -1,0 +1,34 @@
+<%
+  // 诗句来源：builtin（主题内置）/ api（一言接口）/ txt（仓库里的 motto.txt）
+  // 首屏先渲染一句保证不空白，main.js 再按来源替换。
+  var mottoSource = theme.mottoSource || 'builtin';
+  var mottoList = (theme.mottos || []).filter(function (m) { return m && m.text; });
+  var firstMotto = mottoSource === 'builtin' && mottoList.length ? mottoList[0] : null;
+  var mottoText = firstMotto ? firstMotto.text : theme.motto;
+  var mottoFrom = firstMotto ? firstMotto.from : theme.motto_from;
+%>
+<nav class="navbar" id="navbar">
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="菜单">☰&nbsp;&nbsp;MENU</button>
+  <div class="navbar-links" id="navLinks">
+    <% Object.keys(theme.menu).forEach(function (name) { %>
+      <a href="<%- url_for(theme.menu[name]) %>"<% if (decodeURI(page.path) === theme.menu[name]) { %> class="active"<% } %>><%- name %></a>
+    <% }) %>
+  </div>
+  <button class="theme-btn" id="themeBtn" type="button" title="切换深色模式">☾</button>
+</nav>
+
+<header class="main-header<%- is_post() ? ' is-post' : '' %>"
+        style="background-image:url('<%- url_for(theme.banner) %>')">
+  <div class="header-inner">
+    <h1 class="site-title"><%- theme.author %></h1>
+    <p class="site-motto"
+       data-source="<%- mottoSource %>"
+       data-api="<%- theme.mottoApi || '' %>"
+       data-txt="<%- url_for(theme.mottoTxt || '/motto.txt') %>"
+       data-mottos="<%- encodeURIComponent(JSON.stringify(mottoList)) %>"><%- mottoText %></p>
+    <p class="site-from"><%- mottoFrom %></p>
+  </div>
+  <% if (is_home()) { %>
+    <a class="scroll-down" href="#main" aria-label="向下">⌄</a>
+  <% } %>
+</header>

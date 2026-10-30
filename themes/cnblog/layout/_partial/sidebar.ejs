@@ -1,0 +1,112 @@
+﻿<aside class="sidebar">
+  <% if (is_post() && page.content && page.content.length > 500) { %>
+    <section class="widget toc-widget">
+      <h3 class="widget-title">目录</h3>
+      <div class="toc-wrap"><%- toc(page.content, { list_number: false }) %></div>
+    </section>
+  <% } %>
+
+  <%
+    // 同分类合集：按首次发布时间升序，像博客园的系列文章
+    // Hexo 的 categories 是「层级」而不是并列：categories: [算法, 前端] 表示 算法/前端。
+    // 所以取 last() 拿到最末级分类，范围才精确（取 first() 会拿到父级的全部文章）。
+    if (is_post() && page.categories && page.categories.length) {
+      var catData = page.categories.last();
+      if (catData && catData.length > 1) {
+  %>
+    <section class="widget cat-series">
+      <h3 class="widget-title">
+        <a href="<%- url_for(catData.path) %>"><%- catData.name %></a>
+        <span class="series-count"><%- catData.length %> 篇</span>
+      </h3>
+      <ol class="series-list">
+        <%
+          // 按文件夹里的自然顺序展示：先看 front-matter 的 order，再退回文件名
+          var seriesPosts = catData.posts.toArray().sort(function (a, b) {
+            var ao = a.order != null ? Number(a.order) : Infinity;
+            var bo = b.order != null ? Number(b.order) : Infinity;
+            if (ao !== bo) return ao - bo;
+            return String(a.source || "").localeCompare(String(b.source || ""), "zh");
+          });
+        %>
+        <% seriesPosts.forEach(function (p) { %>
+          <li<%- p.path === page.path ? ' class="active"' : '' %>>
+            <a href="<%- url_for(p.path) %>"><%- p.title %></a>
+          </li>
+        <% }) %>
+      </ol>
+    </section>
+  <%    }
+    }
+  %>
+
+  <% (theme.widgets || []).forEach(function (w) { %>
+
+    <% if (w === 'profile') { %>
+      <section class="widget profile">
+        <% if (theme.avatar) { %>
+          <img class="avatar" src="<%- theme.avatar %>" alt="<%- theme.author %>">
+        <% } else { %>
+          <div class="avatar avatar-text"><%- (theme.author || 'A').trim().slice(0, 1).toUpperCase() %></div>
+        <% } %>
+        <h3 class="profile-name"><%- theme.author %></h3>
+        <p class="profile-intro"><%- theme.intro %></p>
+      </section>
+    <% } %>
+
+    <% if (w === 'stats') { %>
+      <section class="widget stats">
+        <div class="stat"><b><%- site.posts.length %></b><span>文章</span></div>
+        <div class="stat"><b><%- site.categories.length %></b><span>分类</span></div>
+        <div class="stat"><b><%- site.tags.length %></b><span>标签</span></div>
+      </section>
+    <% } %>
+
+    <% if (w === 'categories') { %>
+      <section class="widget">
+        <h3 class="widget-title">分类</h3>
+        <ul class="widget-list">
+          <% site.categories.sort('-length').each(function (cat) { %>
+            <%
+              // 分类是层级结构，只显示末级名会和父级看起来并列，这里显示完整路径
+              var catFull = decodeURIComponent(cat.path || '')
+                .replace(/^categories\//, '')
+                .replace(/\/$/, '');
+              if (!catFull) catFull = cat.name;
+              var catDepth = catFull.split('/').length - 1;
+            %>
+            <li class="cat-item<%- catDepth > 0 ? ' cat-child' : '' %>">
+              <a href="<%- url_for(cat.path) %>">
+                <span class="cat-label"><%- catFull %></span>
+                <span class="count"><%- cat.length %></span>
+              </a>
+            </li>
+          <% }) %>
+        </ul>
+      </section>
+    <% } %>
+
+    <% if (w === 'tags') { %>
+      <section class="widget">
+        <h3 class="widget-title">标签</h3>
+        <div class="tag-cloud">
+          <% site.tags.sort('-length').each(function (tag) { %>
+            <a href="<%- url_for(tag.path) %>"><%- tag.name %><%- tag.length ? '(' + tag.length + ')' : '' %></a>
+          <% }) %>
+        </div>
+      </section>
+    <% } %>
+
+    <% if (w === 'recent') { %>
+      <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+        <ul class="widget-list recent">
+          <% site.posts.sort('-date').limit(6).each(function (post) { %>
+            <li><a href="<%- url_for(post.path) %>"><%- post.title %></a></li>
+          <% }) %>
+        </ul>
+      </section>
+    <% } %>
+
+  <% }) %>
+</aside>

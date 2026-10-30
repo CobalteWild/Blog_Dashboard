@@ -1,0 +1,105 @@
+﻿# 博客园风格主题（SimpleMemory 等效实现）
+# 视觉参考 Cnblogs-Theme-SimpleMemory，纯静态实现，不依赖其 JS
+
+# 站点主人（显示在 banner 上）
+author: FAKUMARER
+
+# banner 上的格言（首屏先显示 motto，再由 JS 按 mottoSource 替换）
+#
+# mottoSource:
+#   builtin → 从下面的 mottos 列表随机抽
+#   api     → 每次访问请求 mottoApi（一言接口）
+#   txt     → 从仓库里的 mottoTxt 随机读一行
+mottoSource: builtin
+motto: 星垂平野阔，月涌大江流。
+motto_from: 《旅夜书怀》· 唐代 · 杜甫
+
+# 一言接口（mottoSource: api 时使用）
+# 默认 Hitokoto 的诗词分类，返回 JSON：{ hitokoto, from, from_who, ... }
+# 想换分类就改 c 参数：c=i 诗词 / c=d 文学 / c=k 哲学 ...
+mottoApi: https://v1.hitokoto.cn/?c=i&encode=json
+
+# 诗句文件（mottoSource: txt 时使用）
+# 一行一句，可以用 | 分隔出处，例如：长风破浪会有时，直挂云帆济沧海。|《行路难》· 李白
+mottoTxt: /motto.txt
+
+# 内置诗句库（mottoSource: builtin 时生效）
+mottos:
+  - text: 星垂平野阔，月涌大江流。
+    from: 《旅夜书怀》· 唐代 · 杜甫
+  - text: 长风破浪会有时，直挂云帆济沧海。
+    from: 《行路难·其一》· 唐代 · 李白
+  - text: 会当凌绝顶，一览众山小。
+    from: 《望岳》· 唐代 · 杜甫
+  - text: 千磨万击还坚劲，任尔东西南北风。
+    from: 《竹石》· 清代 · 郑燮
+  - text: 沉舟侧畔千帆过，病树前头万木春。
+    from: 《酬乐天扬州初逢席上见赠》· 唐代 · 刘禹锡
+  - text: 海内存知己，天涯若比邻。
+    from: 《送杜少府之任蜀州》· 唐代 · 王勃
+  - text: 落霞与孤鹜齐飞，秋水共长天一色。
+    from: 《滕王阁序》· 唐代 · 王勃
+  - text: 山重水复疑无路，柳暗花明又一村。
+    from: 《游山西村》· 宋代 · 陆游
+  - text: 不经一番寒彻骨，怎得梅花扑鼻香。
+    from: 《上堂开示颂》· 唐代 · 黄檗禅师
+  - text: 路漫漫其修远兮，吾将上下而求索。
+    from: 《离骚》· 战国 · 屈原
+  - text: 大鹏一日同风起，扶摇直上九万里。
+    from: 《上李邕》· 唐代 · 李白
+  - text: 莫愁前路无知己，天下谁人不识君。
+    from: 《别董大》· 唐代 · 高适
+  - text: 生当作人杰，死亦为鬼雄。
+    from: 《夏日绝句》· 宋代 · 李清照
+  - text: 天行健，君子以自强不息。
+    from: 《周易·乾卦》
+  - text: 博观而约取，厚积而薄发。
+    from: 《稼说送张琥》· 宋代 · 苏轼
+  - text: 纸上得来终觉浅，绝知此事要躬行。
+    from: 《冬夜读书示子聿》· 宋代 · 陆游
+  - text: 问渠那得清如许？为有源头活水来。
+    from: 《观书有感》· 宋代 · 朱熹
+  - text: 衣带渐宽终不悔，为伊消得人憔悴。
+    from: 《蝶恋花》· 宋代 · 柳永
+  - text: 众里寻他千百度，蓦然回首，那人却在，灯火阑珊处。
+    from: 《青玉案·元夕》· 宋代 · 辛弃疾
+  - text: 江山代有才人出，各领风骚数百年。
+    from: 《论诗五绝·其二》· 清代 · 赵翼
+
+# banner 背景图
+# 默认使用主题自带的图片（themes/cnblog/source/images/banner.webp），
+# 原博客园那份 CDN 图有防盗链，外站引用会 403，所以不能直接用。
+# 想换成自己的图：用后台上传拿到 /images/xxx.webp，再把这里改掉即可。
+banner: /images/banner.webp
+
+# 头像
+avatar: https://cdn.luogu.com.cn/upload/usericon/386597.png
+
+# 侧边栏简介
+intro: 这里是 FAKUMARER 的博客，记录算法竞赛、代码与生活。
+
+# 导航菜单
+menu:
+  首页: /
+  归档: /archives/
+  分类: /categories/
+  标签: /tags/
+
+# 侧边栏显示的 widget 顺序（可注释掉不需要的）
+widgets:
+  - profile
+  - stats
+  - categories
+  - tags
+  - recent
+
+# 页脚
+footer:
+  since: 2026
+  copyright: FAKUMARER
+
+# 评论与阅读量：暂不启用（需要先部署 Waline 等服务）
+# 启用后会在文章页渲染 <div id="comments"></div>
+comments:
+  enable: false
+  serverURL: ''

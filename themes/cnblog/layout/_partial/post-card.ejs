@@ -1,0 +1,32 @@
+<article class="post-card">
+  <h2 class="post-title">
+    <a href="<%- url_for(post.path) %>"><%- post.title %></a>
+  </h2>
+
+  <div class="post-meta">
+    <span class="meta-item"><%- date(post.date, 'YYYY-MM-DD') %></span>
+    <% if (post.categories && post.categories.length) { %>
+      <% post.categories.each(function (cat) { %>
+        <a class="meta-item meta-cat" href="<%- url_for(cat.path) %>"><%- cat.name %></a>
+      <% }) %>
+    <% } %>
+  </div>
+
+  <% var summary = (post.excerpt || '').trim(); %>
+  <% if (summary) { %>
+    <div class="post-excerpt">
+      <%- truncate(strip_html(summary), { length: 150 }) %>
+    </div>
+  <% } %>
+
+  <div class="post-footer">
+    <a class="read-more" href="<%- url_for(post.path) %>">阅读全文 →</a>
+    <% if (post.tags && post.tags.length) { %>
+      <span class="post-tags-inline">
+        <% post.tags.each(function (tag) { %>
+          <a href="<%- url_for(tag.path) %>">#<%- tag.name %></a>
+        <% }) %>
+      </span>
+    <% } %>
+  </div>
+</article>

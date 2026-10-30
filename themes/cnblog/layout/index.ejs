@@ -1,0 +1,19 @@
+<% page.posts.each(function (post) { %>
+  <%- partial('_partial/post-card', { post: post }) %>
+<% }) %>
+
+<% if (page.total > 1) { %>
+  <nav class="pagination">
+    <% if (page.prev) { %>
+      <a class="page-btn" href="<%- url_for(page.prev_link) %>">← 上一页</a>
+    <% } else { %>
+      <span class="page-btn disabled">← 上一页</span>
+    <% } %>
+    <span class="page-info"><%- page.current %> / <%- page.total %></span>
+    <% if (page.next) { %>
+      <a class="page-btn" href="<%- url_for(page.next_link) %>">下一页 →</a>
+    <% } else { %>
+      <span class="page-btn disabled">下一页 →</span>
+    <% } %>
+  </nav>
+<% } %>

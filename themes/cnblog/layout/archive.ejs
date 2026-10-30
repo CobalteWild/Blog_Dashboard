@@ -1,0 +1,77 @@
+<%
+  // 归档 / 分类 / 标签共用一个模板：
+  // 分页（每页条数由 _config.yml 的 *_generator.per_page 决定）、按年份分组、标题后跟摘要
+  var groupByYear = true;
+  var currentYear = '';
+%>
+<article class="post-card archive-page">
+  <h1 class="post-title">
+    <% if (is_category()) { %>分类：<%- page.category %>
+    <% } else if (is_tag()) { %>标签：<%- page.tag %>
+    <% } else { %>归档<% } %>
+  </h1>
+
+  <% if (page.posts && page.posts.length) { %>
+    <%
+      // 分类页希望和仓库文件夹里的顺序一致：先看 front-matter 的 order，再退回文件名；
+      // 归档/标签页保持 Hexo 默认的日期倒序。
+      var listedPosts;
+      if (is_category() && typeof page.posts.toArray === "function") {
+        listedPosts = page.posts.toArray().sort(function (a, b) {
+          var ao = a.order != null ? Number(a.order) : Infinity;
+          var bo = b.order != null ? Number(b.order) : Infinity;
+          if (ao !== bo) return ao - bo;
+          return String(a.source || "").localeCompare(String(b.source || ""), "zh");
+        });
+      } else {
+        listedPosts = typeof page.posts.toArray === "function" ? page.posts.toArray() : page.posts;
+      }
+    %>
+    <% listedPosts.forEach(function (post) { %>
+      <% if (groupByYear) {
+           var y = date(post.date, 'YYYY');
+           if (y !== currentYear) { currentYear = y; %>
+             <h2 class="archive-year"><%- y %></h2>
+      <%   }
+         } %>
+      <div class="archive-item">
+        <div class="archive-head">
+          <time class="archive-date"><%- date(post.date, 'MM-DD') %></time>
+          <a class="archive-title" href="<%- url_for(post.path) %>"><%- post.title %></a>
+        </div>
+        <%
+          // 摘要优先级：手填 excerpt > abstract > 正文自动截取
+          // 加密文章的正文是密文，绝不能拿 content 截取
+          var rawSummary = post.excerpt || post.abstract || post.description || '';
+          if (!rawSummary && !post.password) rawSummary = post.content || '';
+          // 去掉 KaTeX 的 MathML 副本，否则摘要里公式会出现两遍
+          rawSummary = String(rawSummary).replace(/<span class="katex-mathml">[\s\S]*?<\/math><\/span>/g, '');
+          var summary = strip_html(rawSummary).replace(/\s+/g, ' ').trim();
+        %>
+        <% if (summary) { %>
+          <div class="archive-excerpt"><%- truncate(summary, { length: 120 }) %></div>
+        <% } %>
+      </div>
+    <% }) %>
+  <% } else { %>
+    <p class="empty-tip">还没有文章。</p>
+  <% } %>
+
+  <% if (page.total > 1) { %>
+    <nav class="pagination">
+      <% if (page.prev) { %>
+        <a class="page-btn" href="<%- url_for(page.prev_link) %>">← 上一页</a>
+      <% } else { %>
+        <span class="page-btn disabled">← 上一页</span>
+      <% } %>
+      <span class="page-info"><%- page.current %> / <%- page.total %></span>
+      <% if (page.next) { %>
+        <a class="page-btn" href="<%- url_for(page.next_link) %>">下一页 →</a>
+      <% } else { %>
+        <span class="page-btn disabled">下一页 →</span>
+      <% } %>
+    </nav>
+  <% } else if (page.posts && page.posts.length) { %>
+    <p class="archive-total">共 <%- page.posts.length %> 篇</p>
+  <% } %>
+</article>

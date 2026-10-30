@@ -1,0 +1,16 @@
+<% if (page.type === 'tags' && !page.tag) { %>
+  <article class="post-card archive-page">
+    <h1 class="post-title">标签</h1>
+    <% if (site.tags.length) { %>
+      <div class="tag-cloud tag-cloud-page">
+        <% site.tags.sort('-length').each(function (tag) { %>
+          <a href="<%- url_for(tag.path) %>"><%- tag.name %><% if (tag.length) { %>(<%- tag.length %>)<% } %></a>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <p class="empty-tip">还没有标签。</p>
+    <% } %>
+  </article>
+<% } else { %>
+  <%- partial('archive') %>
+<% } %>

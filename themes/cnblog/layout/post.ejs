@@ -1,0 +1,54 @@
+<article class="post-card post-full">
+  <h1 class="post-title"><%- page.title %></h1>
+
+  <div class="post-meta">
+    <span class="meta-item"><%- date(page.date, 'YYYY-MM-DD HH:mm') %></span>
+    <% if (page.categories && page.categories.length) { %>
+      <% page.categories.each(function (cat) { %>
+        <a class="meta-item meta-cat" href="<%- url_for(cat.path) %>"><%- cat.name %></a>
+      <% }) %>
+    <% } %>
+  </div>
+
+  <div class="post-content">
+    <% if (page.password) { %>
+      <%# 加密文章：摘要不加密，放在密码框上方让人知道大概内容 %>
+      <% var abstractHtml = page.abstract || page.excerpt; %>
+      <% if (abstractHtml) { %>
+        <div class="post-abstract">
+          <span class="post-abstract-label">摘要</span>
+          <div class="post-abstract-body"><%- abstractHtml %></div>
+        </div>
+      <% } %>
+    <% } %>
+    <%- page.content %>
+  </div>
+
+  <% if (page.tags && page.tags.length) { %>
+    <div class="post-tags">
+      <% page.tags.each(function (tag) { %>
+        <a href="<%- url_for(tag.path) %>">#<%- tag.name %></a>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <div class="post-nav">
+    <% if (page.prev) { %>
+      <a class="post-nav-item prev" href="<%- url_for(page.prev.path) %>">
+        <span>上一篇</span><em><%- page.prev.title %></em>
+      </a>
+    <% } %>
+    <% if (page.next) { %>
+      <a class="post-nav-item next" href="<%- url_for(page.next.path) %>">
+        <span>下一篇</span><em><%- page.next.title %></em>
+      </a>
+    <% } %>
+  </div>
+
+  <!--
+    评论区（预留）：
+    当前刻意不渲染，避免向不存在的服务发请求。
+    部署 Waline 后，在 themes/cnblog/_config.yml 里把 comments.enable 设为 true
+    并填上 serverURL，再把这里替换成评论容器即可（初始化代码见后台使用说明）。
+  -->
+</article>
