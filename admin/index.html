@@ -1,0 +1,345 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>博客后台</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+<link rel="stylesheet" href="vendor/fa/css/fontawesome.min.css">
+<link rel="stylesheet" href="vendor/fa/css/solid.min.css">
+<link rel="stylesheet" href="vendor/easymde.min.css">
+<link rel="stylesheet" href="vendor/katex.min.css">
+<link rel="stylesheet" href="vendor/hljs-light.min.css" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="vendor/hljs-dark.min.css" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="style.css?v=70">
+<script>
+/* file:// 打开时 ES module 会被浏览器拦掉，页面看着在、按钮全无反应。
+   这里直接换成一个说明页，省得用户以为程序坏了。 */
+if (location.protocol === 'file:') {
+  document.addEventListener('DOMContentLoaded', function () {
+    document.title = '需要先启动本地服务';
+    document.body.innerHTML =
+      '<div style="max-width:600px;margin:70px auto;padding:0 22px;font:15px/1.85 -apple-system,Segoe UI,Microsoft YaHei,sans-serif;color:#2c3e50">'
+      + '<h2 style="margin:0 0 14px">请先启动本地服务，不要直接双击打开</h2>'
+      + '<p style="margin:0 0 14px">你正在用 <code>file://</code> 协议打开这个文件，浏览器会禁止加载 ES module 和调用接口，'
+      + '所以按钮点了没反应、编辑器是一片空白。</p>'
+      + '<p style="margin:0 0 8px">在发布包根目录执行：</p>'
+      + '<pre style="background:#f4f5f7;border:1px solid #e3e6ea;border-radius:8px;padding:12px 16px;margin:0 0 14px">.\\start-admin.ps1</pre>'
+      + '<p style="margin:0 0 8px">脚本会自动打开浏览器；也可以手动访问：</p>'
+      + '<p style="margin:0 0 14px"><code>http://127.0.0.1:8765/</code></p>'
+      + '<p style="margin:0;color:#7f8c8d;font-size:13px">macOS / Linux：<code>python3 -m http.server 8765 --bind 127.0.0.1 --directory admin</code></p>'
+      + '</div>';
+  });
+}
+</script>
+
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="dot" id="connDot"></span>
+    <a class="brand-link" id="siteLink" href="#" target="_blank" rel="noopener noreferrer" title="打开博客首页">博客后台</a>
+    <a class="repo-label repo-link" id="repoLink" href="#" target="_blank" rel="noopener noreferrer" title="打开 GitHub 仓库">未配置仓库</a>
+    <a class="action-badge" id="actionBadge" href="#" target="_blank" rel="noopener noreferrer" hidden></a>
+  </div>
+  <div class="actions">
+    <button class="btn ghost" id="btnSaveLocal" title="保存到本地（Ctrl+S），不上传">保存</button>
+    <button class="btn ghost" id="btnPullArchive" title="把仓库 source/ 打包下载为本地存档">↓ 仓库</button>
+    <button class="btn ghost" id="btnImportArchive" title="导入本地存档 zip">导入存档</button>
+    <button class="btn ghost" id="btnPushAll" title="上传所有本地差异（Ctrl+Alt+S）">↑ 仓库</button>
+    <button class="btn ghost" id="btnAttach" title="上传附件到 source/files/，并插入下载链接">上传附件</button>
+    <button class="btn ghost" id="btnImport" title="导入本地 Markdown">导入 .md</button>
+    <button class="btn primary" id="btnPublish">发布</button>
+    <button class="btn ghost" id="btnSettings" title="设置">⚙</button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="side-head">
+      <input id="search" class="search" type="search" placeholder="搜索标题 / 标签 / 分类…">
+      <button class="btn ghost small" id="btnNewRow" title="新建文章">+</button>
+      <button class="btn ghost small" id="btnRefresh" title="刷新">⟳</button>
+    </div>
+    <ul class="post-list" id="postList">
+      <li class="empty">配置仓库后加载文章列表</li>
+    </ul>
+    <div class="side-foot">
+      <span id="postCount">0 篇</span>
+      <span class="foot-actions">
+        <button class="btn ghost small" id="btnMigrateImages" title="只处理当前打开的文章">迁移本篇外链</button>
+        <button class="btn ghost small" id="btnOrganize" title="按分类把文章移进子目录">整理</button>
+      </span>
+    </div>
+  </aside>
+
+  <main class="main">
+    <section class="meta">
+      <div class="meta-row">
+        <label class="field grow">
+          <span>标题</span>
+          <input id="fTitle" type="text" placeholder="文章标题">
+        </label>
+        <label class="field">
+          <span>发布日期</span>
+          <input id="fDate" type="datetime-local" title="设为未来时间即为定时发布">
+        </label>
+      </div>
+      <div class="meta-row">
+        <label class="field">
+          <span>分类</span>
+          <input id="fCategories" type="text" placeholder="随笔, 技术">
+        </label>
+        <label class="field grow">
+          <span>标签</span>
+          <input id="fTags" type="text" placeholder="标签1, 标签2">
+        </label>
+        <label class="field">
+          <span>文件名</span>
+          <input id="fSlug" type="text" placeholder="自动生成">
+        </label>
+      </div>
+      <div class="meta-row">
+        <label class="field grow">
+          <span>摘要</span>
+          <input id="fExcerpt" type="text" placeholder="可选，用于列表页摘要">
+        </label>
+        <label class="field">
+          <span>访问密码</span>
+          <input id="fPassword" type="text" placeholder="留空则公开" autocomplete="off">
+        </label>
+        <button class="btn ghost small" id="btnToggleMeta" title="收起/展开">收起</button>
+      </div>
+    </section>
+
+    <div class="image-hint" id="imageHint" hidden>
+      <span class="hint-text" id="imageHintText"></span>
+      <span class="hint-actions">
+        <button class="btn small primary" id="btnPickImages" type="button">选择图片上传</button>
+        <button class="btn ghost small" id="btnIgnoreImages" type="button">忽略</button>
+      </span>
+    </div>
+
+    <section class="editor-wrap" id="editorWrap">
+      <div class="editor-pane">
+        <textarea id="editor"></textarea>
+      </div>
+      <div class="preview-pane">
+        <article id="sidePreview" class="md-body"></article>
+      </div>
+    </section>
+
+    <footer class="statusbar">
+      <span id="statusText">就绪</span>
+      <span id="wordCount"></span>
+    </footer>
+  </main>
+</div>
+
+<dialog id="settingsDialog">
+  <form method="dialog" class="settings">
+    <button class="dialog-close" value="cancel" type="submit" aria-label="关闭" title="关闭（Esc）">×</button>
+    <h2>设置</h2>
+    <p class="hint">令牌只保存在本机浏览器 localStorage，不会上传到任何第三方。</p>
+
+    <div class="grid2">
+      <label class="field">
+        <span>GitHub 用户名 / 组织</span>
+        <input id="sOwner" type="text" placeholder="your-name">
+      </label>
+      <label class="field">
+        <span>仓库名</span>
+        <input id="sRepo" type="text" placeholder="blog">
+      </label>
+      <label class="field">
+        <span>分支</span>
+        <input id="sBranch" type="text" placeholder="main">
+      </label>
+      <label class="field">
+        <span>站点地址（可选）</span>
+        <input id="sSiteUrl" type="url" placeholder="https://xxx.github.io">
+      </label>
+    </div>
+
+    <label class="field">
+      <span>Personal Access Token（fine-grained，需 Contents: Read and write）</span>
+      <input id="sToken" type="password" placeholder="github_pat_..." autocomplete="off">
+    </label>
+
+    <div class="grid2">
+      <label class="field">
+        <span>文章目录</span>
+        <input id="sPosts" type="text" placeholder="source/_posts">
+      </label>
+      <label class="field">
+        <span>图片目录（图床）</span>
+        <input id="sImages" type="text" placeholder="source/images">
+      </label>
+      <label class="field">
+        <span>图片在文章中的路径前缀</span>
+        <input id="sPrefix" type="text" placeholder="/images">
+      </label>
+      <label class="field">
+        <span>框架</span>
+        <select id="sFramework">
+          <option value="hexo">Hexo</option>
+          <option value="hugo">Hugo</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="workflow-box">
+      <h3>外观</h3>
+      <p class="hint">
+        一键安装「博客园风格」主题（复刻 Cnblogs-Theme-SimpleMemory 的视觉，纯静态、不依赖它的 JS）。
+        会提交 <code>themes/cnblog/</code> 并把站点主题切换过去；评论与阅读量的位置已预留，默认不渲染。
+      </p>
+      <button class="btn" type="button" id="btnInstallTheme">安装博客园风格主题</button>
+    </div>
+
+    <div class="workflow-box">
+      <h3>首页格言</h3>
+      <p class="hint">
+        控制 banner 上那句诗。三种来源：内置诗句库、一言 API、仓库里的 <code>motto.txt</code>。
+        设置写在 <code>themes/cnblog/_config.yml</code>，motto.txt 写在 <code>source/motto.txt</code>。
+      </p>
+      <div class="field-row">
+        <label class="field">
+          <span>来源</span>
+          <select id="fMottoSource">
+            <option value="builtin">内置诗句库</option>
+            <option value="api">一言 API</option>
+            <option value="txt">motto.txt 文件</option>
+          </select>
+        </label>
+      </div>
+      <div class="field-row" id="mottoApiRow" hidden>
+        <label class="field">
+          <span>接口地址（返回 JSON）</span>
+          <input type="text" id="fMottoApi" placeholder="https://v1.hitokoto.cn/?c=i&encode=json">
+        </label>
+      </div>
+      <div class="field-row" id="mottoTxtRow" hidden>
+        <label class="field">
+          <span>上传 motto.txt（一行一句，出处写在 —— 后面）</span>
+          <input type="file" id="fMottoFile" accept=".txt,text/plain">
+        </label>
+        <button class="btn ghost" type="button" id="btnDownloadMotto">下载仓库里的 motto.txt</button>
+      </div>
+      <div class="field-row">
+        <label class="field">
+          <span>首屏显示（内置模式下也作为第一条）</span>
+          <input type="text" id="fMottoText" placeholder="星垂平野阔，月涌大江流。">
+        </label>
+        <label class="field">
+          <span>出处</span>
+          <input type="text" id="fMottoFrom" placeholder="《旅夜书怀》· 唐代 · 杜甫">
+        </label>
+      </div>
+      <div class="btn-row">
+        <button class="btn" type="button" id="btnSaveMotto">保存格言设置</button>
+      </div>
+      <p class="conn-result" id="mottoResult"></p>
+    </div>
+
+    <div class="workflow-box">
+      <h3>批量改分类</h3>
+      <p class="hint">
+        把某个分类下的所有文章整体挪到新的分类路径下。只改 front-matter 的 <code>categories</code>，
+        文件位置、日期、正文和其他字段都不动（URL 不变）。
+      </p>
+      <div class="field-row">
+        <label class="field">
+          <span>原分类（最外层）</span>
+          <input type="text" id="fCatFrom" placeholder="数论">
+        </label>
+        <label class="field">
+          <span>迁移到（用 / 表示层级）</span>
+          <input type="text" id="fCatTo" placeholder="笔记/数论">
+        </label>
+      </div>
+      <div class="btn-row">
+        <button class="btn" type="button" id="btnMoveCategory">执行迁移</button>
+      </div>
+      <p class="conn-result" id="catMoveResult"></p>
+    </div>
+    <div class="workflow-box">
+      <h3>站点初始化</h3>
+      <p class="hint">
+        在仓库里生成 Hexo 骨架：<code>package.json</code>、<code>_config.yml</code>、
+        部署 workflow 和一篇示例文章。已有的文章和图片不会被改动。
+      </p>
+      <div class="btn-row">
+        <button class="btn" type="button" id="btnInitHexo">初始化 Hexo 站点</button>
+        <button class="btn ghost" type="button" id="btnRemoveHexo">移除 Hexo 骨架</button>
+      </div>
+      <p class="conn-result" id="siteResult"></p>
+    </div>
+
+    <div class="workflow-box">
+      <h3>定时发布</h3>
+      <p class="hint">
+        把「发布日期」设为未来时间即可安排定时发布，但需要仓库里有一个定时构建的
+        workflow，否则文章不会自动上线。下面这个按钮会提交
+        <code>.github/workflows/scheduled-rebuild.yml</code>（按所选框架生成）。
+      </p>
+      <p class="hint">
+        注意：修改 <code>.github/workflows/</code> 需要 token 额外具备
+        <strong>Workflows: Read and write</strong> 权限（classic token 则是 <code>workflow</code> scope），
+        仅有 Contents 权限会失败。
+      </p>
+      <button class="btn" type="button" id="btnInstallWorkflow">安装定时构建 workflow</button>
+    </div>
+
+    <p class="conn-result" id="connResult"></p>
+
+    <div class="perm-result" id="permResult" hidden>
+      <ul id="permList"></ul>
+    </div>
+
+    <div class="dialog-actions">
+      <span class="left-actions">
+        <button class="btn ghost" type="button" id="btnTestConn">测试连接</button>
+        <button class="btn ghost" type="button" id="btnCheckPerm">检查权限</button>
+      </span>
+      <button class="btn ghost" value="cancel">取消</button>
+      <button class="btn primary" value="save" id="btnSaveSettings">保存并连接</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="textDialog">
+  <form method="dialog" class="settings">
+    <button class="dialog-close" value="cancel" type="submit" aria-label="关闭" title="关闭（Esc）">×</button>
+    <h2 id="textDialogTitle"></h2>
+    <p class="hint" id="textDialogHint"></p>
+    <textarea id="textDialogBody" class="code-box" readonly spellcheck="false"></textarea>
+    <div class="dialog-actions">
+      <a class="btn" id="textDialogLink" target="_blank" rel="noopener noreferrer">在 GitHub 打开</a>
+      <button class="btn" type="button" id="textDialogCopy">复制</button>
+      <button class="btn primary" value="close">关闭</button>
+    </div>
+  </form>
+</dialog>
+
+<input type="file" id="fileArchive" accept=".zip" hidden>
+<input type="file" id="fileAttach" multiple hidden>
+<input type="file" id="fileImport" accept=".md,.markdown,.txt,text/markdown" hidden>
+<input type="file" id="fileImages" accept="image/*" multiple hidden>
+<div id="toast" class="toast"></div>
+
+<script src="vendor/jszip.min.js"></script>
+<script src="vendor/highlight.min.js"></script>
+<script src="theme-cnblog.js?v=70"></script>
+<script src="vendor/easymde.min.js"></script>
+<script src="vendor/markdown-it.min.js"></script>
+<script src="vendor/markdown-it-task-lists.min.js"></script>
+<script src="vendor/katex.min.js"></script>
+<script src="vendor/auto-render.min.js"></script>
+<script type="module" src="app.js?v=70"></script>
+
+  <div class="ctx-menu" id="ctxMenu" hidden role="menu"></div>
+</body>
+</html>
